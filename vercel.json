@@ -1,0 +1,21 @@
+
+{
+  "version": 2,
+  "name": "express-app",
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.js"
+    }
+  ],
+  "env": {
+    "ACCOUNT_SID": "AC0824866a3e2348ca84b6caed7dc2987b",
+    "AUTH_TOKEN": "2d56299cc9396601bdb1cd45a78ca9d8"
+  }
+}
