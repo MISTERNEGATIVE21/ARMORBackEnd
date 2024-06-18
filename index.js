@@ -4,7 +4,7 @@ const cors = require('cors');
 const app = express();
 const port = 5000;
 const accountSid = 'AC0824866a3e2348ca84b6caed7dc2987b';
-const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN; // Updated variable name
+const twilioAuthToken = 'd73b5a42ad86c853b6ef14054dca5238'; // Updated variable name
 const client = require('twilio')(accountSid, twilioAuthToken); // Use updated variable
 
 app.use(bodyParser.json());
