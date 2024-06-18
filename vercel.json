@@ -1,9 +1,8 @@
 {
   "version": 2,
-  "name": "backendnodejs",
   "builds": [
     {
-      "src": "index.js",
+      "src": "index.js", // Replace with your entry point file if it's different
       "use": "@vercel/node"
     }
   ],
@@ -12,9 +11,5 @@
       "src": "/(.*)",
       "dest": "/index.js"
     }
-  ],
-  "env": {
-    "ACCOUNT_SID": "@account_sid",
-    "AUTH_TOKEN": "@auth_token"
-  }
+  ]
 }
