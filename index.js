@@ -3,9 +3,9 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
 const port = 5000;
-const accountSid = 'AC0824866a3e2348ca84b6caed7dc2987b';
-const twilioAuthToken = 'd73b5a42ad86c853b6ef14054dca5238'; // Updated variable name
-const client = require('twilio')(accountSid, twilioAuthToken); // Use updated variable
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = require('twilio')(accountSid, authToken);
 
 app.use(bodyParser.json());
 app.use(cors({origin:'*'}));
