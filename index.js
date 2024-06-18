@@ -3,12 +3,12 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
 const port = 5000;
-const accountSid = process.env.ACCOUNT_SID;
-const authToken = process.env.AUTH_TOKEN;
-const client = require('twilio')(accountSid, authToken);
+const accountSid = 'AC0824866a3e2348ca84b6caed7dc2987b';
+const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN; // Updated variable name
+const client = require('twilio')(accountSid, twilioAuthToken); // Use updated variable
 
 app.use(bodyParser.json());
-app.use(cors({ origin: '*' }));
+app.use(cors({origin:'*'}));
 
 let data = [
     {
@@ -27,8 +27,12 @@ app.get('/', (req, res) => {
     res.send('Hello, world! This is a simple Express.js app.');
 });
 
+// Assuming you have already initialized 'client' with Twilio
+
 app.post('/panic/:uid/:latitude/:longitude', async (req, res) => {
-    const { uid, latitude, longitude } = req.params;
+    const uid = req.params.uid;
+    const latitude = req.params.latitude;
+    const longitude = req.params.longitude;
 
     console.log(uid);
     console.log(latitude);
@@ -37,35 +41,48 @@ app.post('/panic/:uid/:latitude/:longitude', async (req, res) => {
     const sendMessage = async (contact) => {
         try {
             const message = await client.messages.create({
-                from: 'whatsapp:+14155238886',
-                to: 'whatsapp:' + contact,
+                from: 'whatsapp:+14155238886', // Your Twilio WhatsApp number
+                to: 'whatsapp:' + contact, // Destination number
                 body: `${uid} needs your help https://www.google.com/maps?q=${latitude},${longitude}`
             });
             console.log('Message sent successfully!');
             console.log('Message SID:', message.sid);
         } catch (error) {
             console.error('Error sending message:', error);
+            res.status(500).json({ error: 'Error sending message' });
         }
     };
 
-    const user = data.find(user => user.uid === uid);
-    if (user) {
-        for (let contact of user.emergency) {
-            await sendMessage(contact);
+    for (let i = 0; i < data.length; i++) {
+        console.log(data[i]);
+        if (data[i].uid === uid) {
+            console.log(data[i].uid);
+            const emergency = data[i].emergency;
+            for (let j = 0; j < emergency.length; j++) {
+                console.log(emergency[j]);
+                await sendMessage(emergency[j]); // Wait for each message to be sent
+            }
+            break; // Exit the loop once the emergency contacts are found
         }
     }
 
-    for (let user of data) {
-        if (user.uid !== uid) {
-            await sendMessage(user.contact);
+    for (let i = 0; i < data.length; i++) {
+        if (data[i].uid === uid) {
+            continue;
         }
+            
+        console.log(data[i]);
+        const contact = data[i].contact; // Fixed variable assignment
+        await sendMessage(contact);
     }
 
     res.json({ message: 'Successfully sent SOS' });
 });
 
 app.post('/alert/:uid/:latitude/:longitude', async (req, res) => {
-    const { uid, latitude, longitude } = req.params;
+    const uid = req.params.uid;
+    const latitude = req.params.latitude;
+    const longitude = req.params.longitude;
 
     console.log(uid);
     console.log(latitude);
@@ -74,21 +91,28 @@ app.post('/alert/:uid/:latitude/:longitude', async (req, res) => {
     const sendMessage = async (contact) => {
         try {
             const message = await client.messages.create({
-                from: 'whatsapp:+14155238886',
-                to: 'whatsapp:' + contact,
+                from: 'whatsapp:+14155238886', // Your Twilio WhatsApp number
+                to: 'whatsapp:' + contact, // Destination number
                 body: `${uid} needs your help https://www.google.com/maps?q=${latitude},${longitude}`
             });
             console.log('Message sent successfully!');
             console.log('Message SID:', message.sid);
         } catch (error) {
             console.error('Error sending message:', error);
+            res.status(500).json({ error: 'Error sending message' });
         }
     };
 
-    const user = data.find(user => user.uid === uid);
-    if (user) {
-        for (let contact of user.emergency) {
-            await sendMessage(contact);
+    for (let i = 0; i < data.length; i++) {
+        console.log(data[i]);
+        if (data[i].uid === uid) {
+            console.log(data[i].uid);
+            const emergency = data[i].emergency;
+            for (let j = 0; j < emergency.length; j++) {
+                console.log(emergency[j]);
+                await sendMessage(emergency[j]); // Wait for each message to be sent
+            }
+            break; // Exit the loop once the emergency contacts are found
         }
     }
 
@@ -96,31 +120,36 @@ app.post('/alert/:uid/:latitude/:longitude', async (req, res) => {
 });
 
 app.post('/auth/:uid/:password', (req, res) => {
-    const { uid, password } = req.params;
+    const uid = req.params.uid;
+    const password = req.params.password;
 
-    const user = data.find(user => user.uid === uid && user.password === password);
-    if (user) {
-        res.json({ message: 'user authentication successful' });
-    } else {
-        res.json({ message: 'user not found' });
+    for (let i = 0; i < data.length; i++) {
+        if (data[i].uid === uid && data[i].password === password) {
+            res.json({ message: 'user authentication successful' });
+            return; // Exit the loop once authentication is successful
+        }
     }
+
+    res.status(404).json({ message: 'user not found or authentication failed' });
 });
 
 app.get('/profile/:uid', (req, res) => {
-    const { uid } = req.params;
+    const uid = req.params.uid;
 
-    const user = data.find(user => user.uid === uid);
-    if (user) {
-        res.json(user);
-    } else {
-        res.json({ message: 'Not Found' });
+    for (let i = 0; i < data.length; i++) {
+        if (data[i].uid === uid) {
+            res.json(data[i]);
+            return; // Exit the loop once profile is found
+        }
     }
+
+    res.status(404).json({ message: 'profile not found' });
 });
 
 app.post('/signup/:name/:uid/:password/:email/:address/:contact/:emergency1/:emergency2/:emergency3/:aadhaar', (req, res) => {
     const { name, uid, password, email, address, contact, emergency1, emergency2, emergency3, aadhaar } = req.params;
 
-    const newUser = {
+    const newdata = {
         name,
         uid,
         password,
@@ -131,7 +160,7 @@ app.post('/signup/:name/:uid/:password/:email/:address/:contact/:emergency1/:eme
         aadhaar
     };
 
-    data.push(newUser);
+    data.push(newdata);
 
     res.json({ message: 'New User added' });
 });
