@@ -1,30 +1,27 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors')
+const cors = require('cors');
 const app = express();
 const port = 5000;
 const accountSid = 'AC0824866a3e2348ca84b6caed7dc2987b';
-const authToken = '2d56299cc9396601bdb1cd45a78ca9d8';
-const client = require('twilio')(accountSid, authToken);
-
+const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN; // Updated variable name
+const client = require('twilio')(accountSid, twilioAuthToken); // Use updated variable
 
 app.use(bodyParser.json());
-//app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cors({origin:'*'}))
+app.use(cors({origin:'*'}));
 
-let data =[
+let data = [
     {
-        name:'Jibitesh Chakraborty',
-        uid:'Jibitesh',
-        password:'Jibimax@123',
-        email : 'jibitesh.chakraborty.281102@gmail.com',
-        address : '19A, Ballygunge Place East, Kolkata-19',
-        contact : '+919163623906',
-        emergency : ['+919163362827','+919674956166','+919733590204'],
-        aadhaar : '123456789012'
-
+        name: 'Jibitesh Chakraborty',
+        uid: 'Jibitesh',
+        password: 'Jibimax@123',
+        email: 'jibitesh.chakraborty.281102@gmail.com',
+        address: '19A, Ballygunge Place East, Kolkata-19',
+        contact: '+919163623906',
+        emergency: ['+919163362827', '+919674956166', '+919733590204'],
+        aadhaar: '123456789012'
     }
-]
+];
 
 app.get('/', (req, res) => {
     res.send('Hello, world! This is a simple Express.js app.');
@@ -37,9 +34,9 @@ app.post('/panic/:uid/:latitude/:longitude', async (req, res) => {
     const latitude = req.params.latitude;
     const longitude = req.params.longitude;
 
-    console.log(uid)
-    console.log(latitude)
-    console.log(longitude)
+    console.log(uid);
+    console.log(latitude);
+    console.log(longitude);
 
     const sendMessage = async (contact) => {
         try {
@@ -57,12 +54,12 @@ app.post('/panic/:uid/:latitude/:longitude', async (req, res) => {
     };
 
     for (let i = 0; i < data.length; i++) {
-        console.log(data[i])
+        console.log(data[i]);
         if (data[i].uid === uid) {
             console.log(data[i].uid);
             const emergency = data[i].emergency;
             for (let j = 0; j < emergency.length; j++) {
-                console.log(emergency[j])
+                console.log(emergency[j]);
                 await sendMessage(emergency[j]); // Wait for each message to be sent
             }
             break; // Exit the loop once the emergency contacts are found
@@ -70,13 +67,12 @@ app.post('/panic/:uid/:latitude/:longitude', async (req, res) => {
     }
 
     for (let i = 0; i < data.length; i++) {
-        if(data[i].uid === uid)
-        {
+        if (data[i].uid === uid) {
             continue;
         }
             
-        console.log(data[i])
-        contact = data[i].contact;
+        console.log(data[i]);
+        const contact = data[i].contact; // Fixed variable assignment
         await sendMessage(contact);
     }
 
@@ -88,9 +84,9 @@ app.post('/alert/:uid/:latitude/:longitude', async (req, res) => {
     const latitude = req.params.latitude;
     const longitude = req.params.longitude;
 
-    console.log(uid)
-    console.log(latitude)
-    console.log(longitude)
+    console.log(uid);
+    console.log(latitude);
+    console.log(longitude);
 
     const sendMessage = async (contact) => {
         try {
@@ -108,89 +104,67 @@ app.post('/alert/:uid/:latitude/:longitude', async (req, res) => {
     };
 
     for (let i = 0; i < data.length; i++) {
-        console.log(data[i])
+        console.log(data[i]);
         if (data[i].uid === uid) {
             console.log(data[i].uid);
             const emergency = data[i].emergency;
             for (let j = 0; j < emergency.length; j++) {
-                console.log(emergency[j])
+                console.log(emergency[j]);
                 await sendMessage(emergency[j]); // Wait for each message to be sent
             }
             break; // Exit the loop once the emergency contacts are found
         }
     }
 
-    
-
     res.json({ message: 'Successfully sent SOS' });
 });
 
-app.post('/auth/:uid/:password',(req,res)=>{
+app.post('/auth/:uid/:password', (req, res) => {
+    const uid = req.params.uid;
+    const password = req.params.password;
 
-    uid = req.params.uid;
-    password = req.params.password;
-
-    for(let i = 0; i < data.length; i++)
-    {
-        if(data[i].uid === uid && data[i].password === password)
-        {
-            res.json({message:'user authentication successful'});
-            break;
+    for (let i = 0; i < data.length; i++) {
+        if (data[i].uid === uid && data[i].password === password) {
+            res.json({ message: 'user authentication successful' });
+            return; // Exit the loop once authentication is successful
         }
-
     }
 
-    res.json({message:'user not found'});
-
+    res.status(404).json({ message: 'user not found or authentication failed' });
 });
 
-app.get('/profile/:uid',(req,res)=>{
-    uid = req.params.uid;
+app.get('/profile/:uid', (req, res) => {
+    const uid = req.params.uid;
 
-    for(let i = 0; i < data.length; i++)
-    {
-        if(data[i].uid === uid)
-        {
+    for (let i = 0; i < data.length; i++) {
+        if (data[i].uid === uid) {
             res.json(data[i]);
-            break;
+            return; // Exit the loop once profile is found
         }
     }
 
-    res.json({message:'Not Found'});
+    res.status(404).json({ message: 'profile not found' });
 });
 
-app.post('/signup/:name/:uid/:password/:email/:address/:contact/:emergency1/:emergency2/:emergency3/:aadhaar',(req,res) =>{
-    username = req.params.name;
-    uid = req.params.uid;
-    password = req.params.password;
-    email = req.params.email;
-    address = req.params.address;
-    contact = '+91'+req.params.contact;
-    emergency1 = '+91'+req.params.emergency1;
-    emergency2 = '+91'+req.params.emergency2;
-    emergency3 = '+91'+req.params.emergency3;
-    aadhaar = req.params.aadhaar;
+app.post('/signup/:name/:uid/:password/:email/:address/:contact/:emergency1/:emergency2/:emergency3/:aadhaar', (req, res) => {
+    const { name, uid, password, email, address, contact, emergency1, emergency2, emergency3, aadhaar } = req.params;
 
-    newdata = {
-        name:username,
-        uid:uid,
-        password:password,
-        email:email,
-        address:address,
-        contact : contact,
-        emergency : [emergency1,emergency2,emergency3],
-        aadhaar : aadhaar
+    const newdata = {
+        name,
+        uid,
+        password,
+        email,
+        address,
+        contact: '+91' + contact,
+        emergency: ['+91' + emergency1, '+91' + emergency2, '+91' + emergency3],
+        aadhaar
+    };
 
+    data.push(newdata);
 
-    }
+    res.json({ message: 'New User added' });
+});
 
-    data.push(newdata)
-
-    res.json({message:'New User addedd'})
-})
-
-
-
-app.listen(port,()=>{
-    console.log('App Started At Port 5000')
-})
+app.listen(port, () => {
+    console.log(`App Started At Port ${port}`);
+});
